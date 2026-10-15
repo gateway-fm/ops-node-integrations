@@ -31,7 +31,7 @@ def main():
     scratch.mkdir(exist_ok=True)
     if (ROOT / ".tmp/reth").exists():
         (scratch / "reth").symlink_to(ROOT / ".tmp/reth", target_is_directory=True)
-    run("go", "test", "-race", "./internal/nodeapproval")
+    run("go", "test", "-race", "./internal/nodeapproval/...")
     run("go", "build", "-o", ".tmp/approval-client", "./poc/reth-signed-approvals/client")
     run("go", "test", "-c", "-o", ".tmp/server-approval.test", "./internal/server")
     run("go", "build", "-tags", "mockauth", "-o", ".tmp/ops-server", "./cmd/server")
