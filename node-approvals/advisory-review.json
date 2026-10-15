@@ -10,14 +10,14 @@
       "name": "org.bouncycastle:bcprov-jdk18on",
       "version": "1.84",
       "id": "GHSA-9pwp-9qqc-pr26",
-      "reason": "Not reachable from ApprovalVerifier: it calls math.ec.rfc8032.Ed25519.verify with raw fixed-length keys/signatures and bounded message bytes, with no certificate or PKIX name-constraint parsing. Upstream fix 2c28b25 changes PKIXNameConstraintValidator. This exact-version review covers the approval plugin only, not other Besu certificate/TLS uses; 1.84 is supplied by the pinned Besu runtime, not bundled by this plugin. Reassess on crypto API, trust-key format or host-version changes; see docs/implementation/approvals-release-review.md."
+      "reason": "Not reachable from ApprovalVerifier: it calls math.ec.rfc8032.Ed25519.verify with raw fixed-length keys/signatures and bounded message bytes, with no certificate or PKIX name-constraint parsing. Upstream fix 2c28b25 changes PKIXNameConstraintValidator. This exact-version review covers the approval plugin only, not other Besu certificate/TLS uses; 1.84 is supplied by the pinned Besu runtime, not bundled by this plugin. Reassess on crypto API, trust-key format or host-version changes; see SECURITY.md."
     },
     {
       "ecosystem": "Maven",
       "name": "org.bouncycastle:bcprov-jdk18on",
       "version": "1.84",
       "id": "GHSA-qp49-qgx5-5m26",
-      "reason": "Not reachable from ApprovalVerifier: raw Ed25519 verification uses byte decoding, curve arithmetic and SHA-512, with no ASN.1 parser. Upstream fix 77454da changes the lazy ASN.1 sequence parsing depth guard. This exact-version review covers the approval plugin only, not other Besu ASN.1 uses; 1.84 is supplied by the pinned Besu runtime, not bundled by this plugin. Reassess on crypto API, trust-key format or host-version changes; see docs/implementation/approvals-release-review.md."
+      "reason": "Not reachable from ApprovalVerifier: raw Ed25519 verification uses byte decoding, curve arithmetic and SHA-512, with no ASN.1 parser. Upstream fix 77454da changes the lazy ASN.1 sequence parsing depth guard. This exact-version review covers the approval plugin only, not other Besu ASN.1 uses; 1.84 is supplied by the pinned Besu runtime, not bundled by this plugin. Reassess on crypto API, trust-key format or host-version changes; see SECURITY.md."
     },
     {
       "ecosystem": "crates.io",
@@ -59,14 +59,14 @@
       "name": "com.fasterxml.jackson.core:jackson-core",
       "version": "2.21.5",
       "id": "GHSA-7hhh-6rmp-j9qf",
-      "reason": "Not reachable through the approval extension on pinned Besu 26.8.1: its IPC parser uses JsonFactory.createParser(InputStream), and HTTP uses Vert.x Buffer/String decoding, not createParser(DataInput). PrepareApprovalRpc accepts one raw-transaction String from getParams() and decodes hex/RLP; CanonicalJson is a handwritten output encoder. The plugin bundles no Jackson classes and cannot update the parent-first host library. This exact-version review covers approval ingress and RPC only, not other Besu Jackson/DataInput uses. Reassess on RPC/parser, host-version or serialization changes; see docs/implementation/approvals-release-review.md."
+      "reason": "Not reachable through the approval extension on pinned Besu 26.8.1: its IPC parser uses JsonFactory.createParser(InputStream), and HTTP uses Vert.x Buffer/String decoding, not createParser(DataInput). PrepareApprovalRpc accepts one raw-transaction String from getParams() and decodes hex/RLP; CanonicalJson is a handwritten output encoder. The plugin bundles no Jackson classes and cannot update the parent-first host library. This exact-version review covers approval ingress and RPC only, not other Besu Jackson/DataInput uses. Reassess on RPC/parser, host-version or serialization changes; see SECURITY.md."
     },
     {
       "ecosystem": "Maven",
       "name": "com.fasterxml.jackson.core:jackson-core",
       "version": "2.21.5",
       "id": "GHSA-p6pp-m3f8-5c89",
-      "reason": "Not reachable through the approval extension on pinned Besu 26.8.1: PrepareApprovalRpc reads Object[] parameters without numeric coercion, requires one raw-transaction String, and uses hex/RLP decoding. It never converts arbitrary strings to floating-point numbers, invokes JsonNode.asDouble(), or calls NumberInput.looksLikeValidNumber(); its response uses known strings, booleans and collection values. Approval delivery is bounded protobuf and fingerprint JSON uses CanonicalJson. The plugin bundles no Jackson classes. This exact-version review does not clear other Besu methods or host uses; reassess on parameter/coercion, serialization or host-version changes; see docs/implementation/approvals-release-review.md."
+      "reason": "Not reachable through the approval extension on pinned Besu 26.8.1: PrepareApprovalRpc reads Object[] parameters without numeric coercion, requires one raw-transaction String, and uses hex/RLP decoding. It never converts arbitrary strings to floating-point numbers, invokes JsonNode.asDouble(), or calls NumberInput.looksLikeValidNumber(); its response uses known strings, booleans and collection values. Approval delivery is bounded protobuf and fingerprint JSON uses CanonicalJson. The plugin bundles no Jackson classes. This exact-version review does not clear other Besu methods or host uses; reassess on parameter/coercion, serialization or host-version changes; see SECURITY.md."
     }
   ],
   "required_compatibility": {

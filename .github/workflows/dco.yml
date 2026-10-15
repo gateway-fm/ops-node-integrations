@@ -1,0 +1,45 @@
+name: DCO
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  dco:
+    name: DCO sign-off check
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      # Read metadata only: do not check out or execute contributor code.
+      - name: Check Signed-off-by on PR commits
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          expected=$(gh api "repos/$REPO/pulls/$PR" --jq '.commits')
+          pages=$(gh api --paginate --slurp "repos/$REPO/pulls/$PR/commits?per_page=100")
+          commits=$(jq 'add' <<< "$pages")
+          actual=$(jq 'length' <<< "$commits")
+          # This API returns at most 250 commits; never silently check a partial PR.
+          if [ "$actual" -ne "$expected" ]; then
+            echo "::error::Cannot verify every PR commit. Split the PR into smaller changes."
+            exit 1
+          fi
+          unsigned=$(jq -r '
+            .[]
+            | select((.parents | length) < 2)
+            | select(((.author.type // "") == "Bot") | not)
+            | select((.commit.message | split("\n")
+                      | any(test("^Signed-off-by: .+ <.+@.+>$"))) | not)
+            | .sha
+          ' <<< "$commits")
+          if [ -n "$unsigned" ]; then
+            echo "::error::Commits missing a DCO sign-off; see CONTRIBUTING.md."
+            printf '%s\n' "$unsigned"
+            exit 1
+          fi
+          echo "All non-merge, human-authored commits carry a DCO sign-off."

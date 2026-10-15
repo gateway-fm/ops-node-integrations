@@ -1,18 +1,18 @@
 # Signed approvals: wire contract
 
-One contract between OPS (the sender) and every block producer that enforces approvals (the
-receivers: the Besu plugin and the Reth node). Three implementations share it — Go in OPS
-(`internal/nodeapproval`), Java in the plugin (`poc/besu-signed-approvals`), Rust in the node
-(`poc/reth-signed-approvals`) — and all three test against the same golden vectors. The reasons
-behind each choice are in [approvals-production-plan.md](approvals-production-plan.md) §0 and §3.
+This contract connects the OPS Go sender (`internal/nodeapproval`) with the Besu plugin
+(`node-approvals/besu`) and Reth producer (`node-approvals/reth`). All three implementations test
+against the same signed vectors. The version and exact input hashes are recorded in
+[the contract manifest](../../contract/manifest.json). Fingerprint semantics are described in
+[the fingerprint contract](../fingerprints.md).
 
 ## 1. Transport
 
 | Aspect | Contract |
 |---|---|
 | Protocol | gRPC over HTTP/2, service `ops.approvals.v1.ApprovalDelivery` ([`proto/ops/approvals/v1/approvals.proto`](../../proto/ops/approvals/v1/approvals.proto)) |
-| Direction | OPS dials each producer (plan §0 1c). Each target address reaches exactly one producer: no load balancer in between, or the boot id (§4) changes on every reconnect |
-| Security | Plaintext for now (plan §0.3). A network rule must let only OPS reach the receiver's port, and receivers refuse to start without an explicit source list (CIDRs, or `any` to rely on the network rule alone). They also cap connections and concurrent calls, and close a connection that has not completed the HTTP/2 preface within 5 s or has carried no call for 30 s — OPS calls `Status` every second, so its own connections never idle. The Ed25519 signature protects integrity either way |
+| Direction | OPS dials each producer. Each target address reaches exactly one producer: no load balancer in between, or the boot id (§4) changes on every reconnect |
+| Security | Plaintext for now. A network rule must let only OPS reach the receiver's port, and receivers refuse to start without an explicit source list (CIDRs, or `any` to rely on the network rule alone). They also cap connections and concurrent calls, and close a connection that has not completed the HTTP/2 preface within 5 s or has carried no call for 30 s — OPS calls `Status` every second, so its own connections never idle. The Ed25519 signature protects integrity either way |
 | Calls | One unary `Deliver` per batch. Calls share one connection per producer and do not wait for each other; OPS bounds the calls in flight per producer. No gRPC-level retry policy: retries are OPS's (§5) |
 | Reconnect | OPS reconnects with backoff capped at 1 s and resolves the target name on every attempt, so a producer that restarts on a new address is reached within about a second |
 | Message size | A full batch is under 4.1 KiB; receivers cap requests at 64 KiB |
@@ -48,11 +48,11 @@ The reserved field once carried a hash of the submitting user's identifier. That
 pseudonym — an identifier derived from an address can be enumerated — and no receiver needs it: OPS's
 own audit log records who submitted each transaction.
 
-**Golden vectors:** `internal/nodeapproval/testdata/batch.json` and `call-batch.json`, signed with
+**Golden vectors:** `contract/vectors/batch.json` and `call-batch.json`, signed with
 the seed `0x07`×32 under key id `default`, `issued_at` 1790000000000, `expires_at` 1790000600000.
 Every implementation decodes and verifies them in its own tests (their reserved field is not zero:
 decoders must accept any value). Regenerating them is a contract change
-(`OPS_UPDATE_BATCH_GOLDEN=1`, `OPS_WRITE_CALL_GOLDEN=1`).
+and requires a new contract version and matching sender and receiver reviews.
 
 ## 3. What the receiver checks, and what the sender does
 
@@ -114,17 +114,17 @@ the TTL; OPS forgets a lane's reported values when it stops being ready.
 - Retains every signed batch until its `expires_at`, up to a cap; beyond the cap the oldest batches
   are dropped first and counted. Retention is in memory: an OPS crash can lose undelivered
   approvals; even delivered approvals can be lost if OPS and the producer both restart, together
-  or successively while the transaction is pending. Durable storage is deferred (plan §5.1).
+  or successively while the transaction is pending. Durable storage is deferred.
   If no usable copy remains, recovery can require client resubmission through OPS and fresh approval.
 - With several producers configured (a standby sequencer), sends every batch to each of them
   independently: one producer failing does not hold back another.
 - Backs off per lane: while a lane refuses (store full, unavailable), only one probe call is in
   flight on it. A retry that is waiting holds no call slot, and fresh batches go before retries and
   redeliveries.
-- Forwards the transaction without waiting for any confirmation (plan §0 1a). When no lane is
+- Forwards the transaction without waiting for any confirmation. When no lane is
   ready — none connected with a matching `Status` in the last few seconds — `Enqueue` fails and the
   client gets 503 rather than a forwarded transaction that cannot be approved.
-- Durable approval storage is not required for the current release (plan §0 1d, §5.1). If a future
+- Durable approval storage is not required for the current release. If a future
   recovery requirement justifies it, persistence must not gate forwarding, signing or delivery;
   its resource cost and remaining crash recovery gap must be measured before rollout.
 

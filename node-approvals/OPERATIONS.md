@@ -109,7 +109,7 @@ even with a ten-minute TTL. The measured OPS live retention cost at batch size o
 65 MiB per 100,000 entries; reserve process/GC headroom separately. Size producer capacity for
 all OPS instances and fresh traffic during replay. Use observed issuance rates, which include
 retries, rather than committed TPS. Full caches can evict old approvals while replay catches up.
-See [measured limits of recovery](../poc/approval-performance/README.md).
+Recovery limits must be measured for each supported deployment before release.
 
 Signing/delivery does not wait for disk or batch fill. Increasing verification workers competes
 with execution for CPU; defaults remain two, with four tested as a Besu tuning option. The local

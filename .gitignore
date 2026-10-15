@@ -1,0 +1,9 @@
+.tmp/
+.gradle/
+**/build/
+**/target/
+__pycache__/
+*.pyc
+.DS_Store
+# Private scanner exports belong in the approved internal tracking system.
+/security/open-findings.json

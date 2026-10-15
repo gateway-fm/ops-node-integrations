@@ -24,11 +24,38 @@ def output(*args):
     return subprocess.check_output(args, cwd=ROOT, text=True).strip()
 
 
+def verify_source(initial_commit, initial_dirty, release):
+    final_commit = output("git", "rev-parse", "HEAD")
+    final_dirty = bool(output("git", "status", "--porcelain", "--untracked-files=all"))
+    changed = final_commit != initial_commit
+    if release and (initial_dirty or final_dirty or changed):
+        raise SystemExit("release source changed during build")
+    return initial_dirty or final_dirty or changed
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("target", choices=["besu", "reth"])
     parser.add_argument("--output", type=Path, default=ROOT / ".tmp/approval-release")
+    parser.add_argument("--release", action="store_true", help="require clean source and pinned release toolchains")
     args = parser.parse_args()
+    source_dirty = bool(output("git", "status", "--porcelain", "--untracked-files=all"))
+    if args.release and source_dirty:
+        raise SystemExit("release builds require a clean checkout")
+    initial_commit = output("git", "rev-parse", "HEAD")
+    run("python3", "scripts/contract.py")
+    protocol_manifest = ROOT / COMPAT["protocol"]["manifest"]
+    if hashlib.sha256(protocol_manifest.read_bytes()).hexdigest() != COMPAT["protocol"]["sha256"]:
+        raise SystemExit("contract manifest differs from compatibility.json")
+    if args.release:
+        if args.target == "besu":
+            java_home = os.environ.get("JAVA_HOME")
+            if not java_home or f'IMPLEMENTOR_VERSION="Temurin-{COMPAT["besu"]["java"]}"' not in (Path(java_home) / "release").read_text().splitlines():
+                raise SystemExit("release JDK differs from compatibility.json")
+            if f'Gradle {COMPAT["besu"]["gradle"]}' not in output("gradle", "--version").splitlines():
+                raise SystemExit("release Gradle differs from compatibility.json")
+        elif output("rustc", "--version").split()[1] != COMPAT["reth"]["rust"]:
+            raise SystemExit("release Rust differs from compatibility.json")
     if args.target == "besu":
         run("gradle", "-p", str(HERE / "besu"), "--no-daemon", "check", "assemble", "dependencyInventory")
         artifact = HERE / f"besu/build/libs/ops-besu-approvals-{VERSION}-besu-{COMPAT['besu']['version']}.jar"
@@ -54,6 +81,7 @@ def main():
         artifact = target / "release/ops-reth-approvals"
         toolchain = output("rustc", "--version")
         name = f"ops-reth-approvals-{VERSION}-reth-{COMPAT['reth']['version']}-{platform.system().lower()}-{platform.machine()}"
+    source_dirty = verify_source(initial_commit, source_dirty, args.release)
     destination = args.output.resolve() / name
     # Refuse to mix a previous bundle's files/checksums into a new one.
     destination.mkdir(parents=True, exist_ok=False)
@@ -62,21 +90,32 @@ def main():
         shutil.copy2(HERE / "besu/build/dependency-inventory.json", destination / "dependency-inventory.json")
     else:
         shutil.copy2(HERE / "reth/Cargo.lock", destination / "Cargo.lock")
-    commit = output("git", "rev-parse", "HEAD")
+    commit = initial_commit
     for filename in ["VERSION", "compatibility.json", "README.md", "OPERATIONS.md", "alerts.yml", "advisory-review.json"]:
         shutil.copy2(HERE / filename, destination / filename)
         if filename.endswith(".md"):
             # External repository references still work when the bundle is unpacked alone.
             content = (destination / filename).read_text()
             content = re.sub(r"\]\(\.\./([^)]*)\)",
-                             lambda match: f"](https://github.com/gateway-fm/open-privacy-suite/blob/{commit}/{match[1]})",
+                             lambda match: f"](https://github.com/gateway-fm/ops-node-integrations/blob/{commit}/{match[1]})",
                              content)
             (destination / filename).write_text(content)
-    shutil.copy2(ROOT / "LICENSE", destination / "LICENSE")
+    for filename in ["LICENSE", "NOTICE", "THIRD_PARTY_NOTICES.md", "SECURITY.md"]:
+        shutil.copy2(ROOT / filename, destination / filename)
+        if filename.endswith(".md"):
+            # Root documentation can reference source files absent from the bundle.
+            content = (destination / filename).read_text()
+            content = re.sub(r"\]\((?![a-zA-Z][a-zA-Z0-9+.-]*:|#)([^)]+)\)",
+                             lambda match: f"](https://github.com/gateway-fm/ops-node-integrations/blob/{commit}/{match[1]})",
+                             content)
+            (destination / filename).write_text(content)
+    shutil.copy2(protocol_manifest, destination / "protocol-manifest.json")
     manifest = {
         "version": VERSION, "integration": args.target,
+        "source_repository": "https://github.com/gateway-fm/ops-node-integrations",
         "source_commit": commit,
-        "source_dirty": bool(output("git", "status", "--porcelain")),
+        "source_dirty": source_dirty,
+        "release_build": args.release,
         "toolchain": toolchain, "platform": platform.system(), "architecture": platform.machine(),
         "compatibility": COMPAT,
     }

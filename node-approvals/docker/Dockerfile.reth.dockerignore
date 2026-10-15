@@ -6,3 +6,7 @@
 node-approvals/reth/target/
 !proto/
 !proto/**
+
+!contract/
+!contract/vectors/
+!contract/vectors/**

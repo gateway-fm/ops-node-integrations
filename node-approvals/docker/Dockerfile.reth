@@ -15,6 +15,7 @@ if actual != p['commit']:
     raise SystemExit('Reth source differs from compatibility.json')
 PY
 COPY proto/ proto/
+COPY contract/vectors/ contract/vectors/
 COPY node-approvals/reth/ node-approvals/reth/
 ARG CARGO_BUILD_JOBS=4
 RUN --mount=type=cache,target=/usr/local/cargo/registry \

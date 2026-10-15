@@ -476,10 +476,9 @@ mod tests {
 
     #[test]
     fn golden_and_generated_storage_and_call_variants() {
-        let golden: Value = serde_json::from_str(include_str!(
-            "../../../internal/nodeapproval/testdata/fingerprint.json"
-        ))
-        .unwrap();
+        let golden: Value =
+            serde_json::from_str(include_str!("../../../contract/vectors/fingerprint.json"))
+                .unwrap();
         assert_eq!(
             compare(&golden["calls"], &golden["pre"], &golden["diff"])
                 .unwrap()
@@ -544,10 +543,9 @@ mod tests {
 
     #[test]
     fn cancun_noop_marker_preserves_parent_context() {
-        let golden: Value = serde_json::from_str(include_str!(
-            "../../../internal/nodeapproval/testdata/fingerprint.json"
-        ))
-        .unwrap();
+        let golden: Value =
+            serde_json::from_str(include_str!("../../../contract/vectors/fingerprint.json"))
+                .unwrap();
         let mut calls = golden["calls"].clone();
         calls["calls"] = json!([{"type":"SELFDESTRUCT","from":Address::ZERO,"input":"0x","gas":"0x0","gasUsed":"0x0"}]);
         let noop = compare(&calls, &golden["pre"], &golden["diff"]).unwrap();
@@ -564,10 +562,9 @@ mod tests {
 
     #[test]
     fn unsupported_calls_and_bounds_remain_fail_closed() {
-        let golden: Value = serde_json::from_str(include_str!(
-            "../../../internal/nodeapproval/testdata/fingerprint.json"
-        ))
-        .unwrap();
+        let golden: Value =
+            serde_json::from_str(include_str!("../../../contract/vectors/fingerprint.json"))
+                .unwrap();
         for kind in ["AUTHCALL", "UNKNOWN"] {
             let mut call = golden["calls"].clone();
             call["type"] = json!(kind);

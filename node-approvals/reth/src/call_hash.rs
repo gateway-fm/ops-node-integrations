@@ -98,10 +98,8 @@ mod tests {
     use serde_json::Value;
     use std::collections::HashMap;
     fn fixture() -> (CallFrame, HashMap<Address, B256>, B256) {
-        let v: Value = serde_json::from_str(include_str!(
-            "../../../internal/nodeapproval/testdata/call-v3.json"
-        ))
-        .unwrap();
+        let v: Value =
+            serde_json::from_str(include_str!("../../../contract/vectors/call-v3.json")).unwrap();
         let codes = v["pre"]
             .as_object()
             .unwrap()

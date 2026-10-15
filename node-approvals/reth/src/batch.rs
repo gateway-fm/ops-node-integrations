@@ -285,10 +285,7 @@ pub(crate) mod tests {
     }
 
     pub fn golden_batch() -> Vec<u8> {
-        golden(include_str!(
-            "../../../internal/nodeapproval/testdata/batch.json"
-        ))
-        .0
+        golden(include_str!("../../../contract/vectors/batch.json")).0
     }
 
     fn check(bytes: &[u8], trust: &Trust, now: u64) -> Result<Vec<Approval>, Refusal> {
@@ -299,11 +296,11 @@ pub(crate) mod tests {
     fn go_signed_golden_batches_decode_and_verify() {
         for (json, modes) in [
             (
-                include_str!("../../../internal/nodeapproval/testdata/batch.json"),
+                include_str!("../../../contract/vectors/batch.json"),
                 vec![0, 0, 0],
             ),
             (
-                include_str!("../../../internal/nodeapproval/testdata/call-batch.json"),
+                include_str!("../../../contract/vectors/call-batch.json"),
                 vec![3, 0],
             ),
         ] {
@@ -329,8 +326,8 @@ pub(crate) mod tests {
     #[test]
     fn any_flipped_bit_truncation_or_trailing_byte_is_refused() {
         for json in [
-            include_str!("../../../internal/nodeapproval/testdata/batch.json"),
-            include_str!("../../../internal/nodeapproval/testdata/call-batch.json"),
+            include_str!("../../../contract/vectors/batch.json"),
+            include_str!("../../../contract/vectors/call-batch.json"),
         ] {
             let (wire, _) = golden(json);
             for i in 0..wire.len() {

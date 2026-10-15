@@ -1,0 +1,41 @@
+name: Bug report
+description: Report a reproducible problem with an integration or its tooling.
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For suspected vulnerabilities, email security@gateway.fm as described in SECURITY.md.
+        This issue is public. Use synthetic examples; omit credentials, customer data,
+        private audit findings and production logs.
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - Besu integration
+        - Reth integration
+        - Protocol or build tooling
+        - Documentation
+    validations:
+      required: true
+  - type: textarea
+    id: versions
+    attributes:
+      label: Versions and environment
+      description: Integration commit, node version, OPS version, OS and relevant toolchain versions.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Steps and synthetic configuration needed to reproduce the problem.
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected and actual behavior
+      description: Include only sanitized diagnostic excerpts needed to explain the difference.
+    validations:
+      required: true

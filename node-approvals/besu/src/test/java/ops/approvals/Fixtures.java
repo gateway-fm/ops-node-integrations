@@ -24,10 +24,10 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Wei;
 
-/** Shared Go golden vectors (single source of truth in internal/nodeapproval/testdata). */
+/** Shared Go golden vectors (versioned source of truth in contract/vectors). */
 final class Fixtures {
   static final ObjectMapper JSON = new ObjectMapper();
-  static final Path GO_TESTDATA = Path.of("..", "..", "internal", "nodeapproval", "testdata");
+  static final Path GO_TESTDATA = Path.of("..", "..", "contract", "vectors");
   /** The Go fixture signer's seed: bytes.Repeat([]byte{7}, 32). */
   static final byte[] FIXTURE_SEED = seed(7);
   /** ed25519.NewKeyFromSeed(bytes.Repeat([]byte{7}, 32)).Public() */

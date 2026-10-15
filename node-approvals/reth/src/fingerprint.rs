@@ -212,10 +212,9 @@ mod tests {
     use super::*;
     #[test]
     fn shared_go_rust_golden() {
-        let v: Value = serde_json::from_str(include_str!(
-            "../../../internal/nodeapproval/testdata/fingerprint.json"
-        ))
-        .unwrap();
+        let v: Value =
+            serde_json::from_str(include_str!("../../../contract/vectors/fingerprint.json"))
+                .unwrap();
         assert_eq!(
             fingerprint(&v["calls"], &v["pre"], &v["diff"])
                 .unwrap()
