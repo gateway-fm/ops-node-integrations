@@ -33,6 +33,12 @@ def verify_source(initial_commit, initial_dirty, release):
     return initial_dirty or final_dirty or changed
 
 
+def upstream_state(source):
+    """HEAD and modification state of the upstream Reth checkout the add-on compiles against."""
+    return (output("git", "-C", str(source), "rev-parse", "HEAD"),
+            bool(output("git", "-C", str(source), "status", "--porcelain")))
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("target", choices=["besu", "reth"])
@@ -67,9 +73,10 @@ def main():
         if not source.exists():
             run("git", "clone", "--depth", "1", "--branch", "v" + COMPAT["reth"]["version"],
                 COMPAT["reth"]["repository"], str(source))
-        if output("git", "-C", str(source), "rev-parse", "HEAD") != COMPAT["reth"]["commit"]:
+        head, modified = upstream_state(source)
+        if head != COMPAT["reth"]["commit"]:
             raise SystemExit("Reth checkout differs from compatibility.json")
-        if output("git", "-C", str(source), "status", "--porcelain"):
+        if modified:
             raise SystemExit("Reth checkout must be unmodified")
         import tomllib
         if tomllib.loads((HERE / "reth/Cargo.toml").read_text())["package"]["version"] != VERSION:
@@ -78,6 +85,10 @@ def main():
         env = dict(os.environ, CARGO_TARGET_DIR=str(target))
         for verb in ["test", "build"]:
             run("cargo", verb, "--release", "--locked", "--manifest-path", str(HERE / "reth/Cargo.toml"), env=env)
+        # verify_source covers this repository only, and it ignores .tmp/. A checkout switch or edit
+        # while Cargo ran would package a binary that no longer matches the pinned upstream.
+        if upstream_state(source) != (COMPAT["reth"]["commit"], False):
+            raise SystemExit("Reth checkout changed during build")
         artifact = target / "release/ops-reth-approvals"
         toolchain = output("rustc", "--version")
         name = f"ops-reth-approvals-{VERSION}-reth-{COMPAT['reth']['version']}-{platform.system().lower()}-{platform.machine()}"

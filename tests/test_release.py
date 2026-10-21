@@ -63,6 +63,35 @@ class ReleaseTests(unittest.TestCase):
                 with self.assertRaisesRegex(SystemExit, "changed during build"):
                     build.verify_source("initial-commit", False, True)
 
+    def test_upstream_change_during_compilation_is_rejected(self):
+        for change in [{"head": "0" * 40}, {"status": " M crates/metrics/src/lib.rs"}]:
+            with self.subTest(change=change), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                upstream = root / ".tmp/reth"
+                upstream.mkdir(parents=True)
+                manifest = root / build.COMPAT["protocol"]["manifest"]
+                manifest.parent.mkdir(parents=True)
+                manifest.write_bytes((build.ROOT / build.COMPAT["protocol"]["manifest"]).read_bytes())
+                state = {"head": build.COMPAT["reth"]["commit"], "status": ""}
+
+                def output(*args):
+                    if args[:3] == ("git", "-C", str(upstream)):
+                        return state["head"] if args[3] == "rev-parse" else state["status"]
+                    return "test-commit" if args[:2] == ("git", "rev-parse") else ""
+
+                def run(*args, **kwargs):
+                    if args[:2] == ("cargo", "build"):
+                        state.update(change)  # the checkout moves while Cargo compiles against it
+
+                bundles = root / "output"
+                with patch("sys.argv", ["build.py", "reth", "--output", str(bundles)]), \
+                     patch.object(build, "ROOT", root), \
+                     patch.object(build, "output", side_effect=output), \
+                     patch.object(build, "run", side_effect=run):
+                    with self.assertRaisesRegex(SystemExit, "Reth checkout changed during build"):
+                        build.main()
+                self.assertFalse(bundles.exists())
+
     def test_nonrelease_records_source_changes(self):
         with patch.object(build, "output", side_effect=["different-commit", ""]):
             self.assertTrue(build.verify_source("initial-commit", False, False))
