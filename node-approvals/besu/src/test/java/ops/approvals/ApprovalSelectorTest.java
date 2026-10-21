@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.KeyPair;
@@ -368,6 +369,29 @@ class ApprovalSelectorTest {
     final TransactionSelectionResult post = selector.evaluateTransactionPostProcessing(ctx, result(false));
     assertFalse(post.selected());
     assertFalse(post.discard());
+    assertEquals(Optional.of(ApprovalSelector.PENDING), post.maybeInvalidReason());
+  }
+
+  @Test
+  void anApprovalThatExpiresWhileTheFingerprintIsComputedIsNotSelected() {
+    approve(Approval.HASH_CALLS, fingerprint, 1);
+    // Pre-processing and the start of post-processing read the clock before the deadline; the
+    // reading taken once the fingerprint matches is past it.
+    final AtomicInteger reads = new AtomicInteger();
+    final ApprovalSelector crossing =
+        new ApprovalSelector(
+            store,
+            CHAIN,
+            window,
+            () -> reads.incrementAndGet() <= 2 ? clock.get() : clock.get() + 1,
+            tracer,
+            ApprovalSelector.Metrics.NONE);
+    final TransactionEvaluationContext ctx = context(clock.get());
+    assertTrue(crossing.evaluateTransactionPreProcessing(ctx).selected());
+    execute(records, false);
+    final TransactionSelectionResult post = crossing.evaluateTransactionPostProcessing(ctx, result(false));
+    assertFalse(post.selected());
+    assertFalse(post.discard(), "expired, not mismatched: the transaction waits out its window");
     assertEquals(Optional.of(ApprovalSelector.PENDING), post.maybeInvalidReason());
   }
 

@@ -15,8 +15,9 @@ import org.slf4j.LoggerFactory;
 /**
  * The producer gate. Pre-processing: no usable approval → wait (keep in pool) until the wait
  * window ends, then drop. An approval is usable while now &lt; expires_at; an expired one counts
- * as absent (wire contract §6). Post-processing: the approval must still be usable, and the actual
- * execution's fingerprint must equal the approved one, otherwise Besu rolls the candidate back.
+ * as absent (wire contract §6). Post-processing: the actual execution's fingerprint must equal the
+ * approved one, and the approval must still be usable both before and after the fingerprint is
+ * computed, otherwise Besu rolls the candidate back.
  * Every exceptional path is a rejection.
  */
 public final class ApprovalSelector implements PluginTransactionSelector {
@@ -176,6 +177,12 @@ public final class ApprovalSelector implements PluginTransactionSelector {
     }
     if (!actual.getBytes().equals(approval.fingerprint().getBytes())) {
       return reject(txHash, MISMATCH, "approved " + approval.fingerprint() + " actual " + actual);
+    }
+    // Fingerprinting can cross the signed deadline too. Commit time decides (wire contract §6), so
+    // the result is returned for commit only if the approval is still usable now.
+    final long committing = clock.getAsLong();
+    if (!stored.get().usableAt(committing)) {
+      return absent(context.getPendingTransaction(), txHash, committing, true);
     }
     metrics.decision("allow", "matched");
     if (DIAGNOSTICS) {
