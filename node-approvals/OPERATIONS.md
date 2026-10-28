@@ -82,6 +82,13 @@ network policy. They expose execution facts and spend node CPU. Never publish th
 directly beside the OPS endpoint. OPS blocks the whole private `ops_` namespace even for wildcard
 method grants; its internal preflight uses the private node connection.
 
+The Reth producer runs without discv5 peer discovery: the binary sets `--disable-discv5-discovery`
+by default and the command line cannot clear it. discv4 and DNS discovery keep Reth's defaults, and
+without `--bootnodes` a custom chain falls back to the public mainnet bootnodes. Run producers with
+`--disable-discovery` and connect them with `--trusted-peers` (add `--trusted-only` to refuse other
+peers). Reth's `p2p bootnode --v5` maintenance command still runs discv5; never run it with a
+producer's p2p key.
+
 Delivery remains plaintext by the agreed design. Signatures prevent forged approvals; they do
 not authenticate status responses or prevent observation, replay, suppression or denial of
 service by an attacker on that network. The RPC simulation response is also trusted input from

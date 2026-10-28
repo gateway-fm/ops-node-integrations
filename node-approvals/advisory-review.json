@@ -165,6 +165,13 @@
       "version": "0.10.4",
       "id": "GHSA-qwgh-2vcv-g2f7",
       "reason": "Not affected in 0.10.4: OSV's range is a blanket introduced 0 to fixed 0.12.1 without per-version analysis. The advisory's mechanism is the 0.11/0.12 inline cursor stored inside the block bytes and overwritten before a panicking compress/gen_block callback. 0.10.4 has no inline cursor storage and no ReadBuffer: its cursor is a separate pos field, written only after callbacks return, so a caught panic leaves a valid position. No 0.10.x fix exists (digest 0.10.7 requires 0.10); the 0.12 copy is updated to the fixed 0.12.1. Reassess on any block-buffer or digest version change."
+    },
+    {
+      "ecosystem": "crates.io",
+      "name": "crypto-bigint",
+      "version": "0.5.5",
+      "id": "RUSTSEC-2026-0387",
+      "reason": "Not reachable in ops-reth-approvals node (Reth 2.5.2): secret values reach crypto-bigint 0.5.5 only through k256 0.13 arithmetic on private keys. In node that is discv5 using the p2p key (handshake ECDH, id-nonce signing, ENR re-signing). The binary sets --disable-discv5-discovery by default before parsing the command line (src/discovery.rs; main parses through it, and its test checks the parsed node arguments) and the flag takes no value, so the command line cannot re-enable discv5. The same defaults apply to every networking command (stage run, p2p header/body); discv4 and RLPx use libsecp256k1. Other k256 private-key users are outside producer operation: DevSigner (--dev only) and the p2p bootnode --v5 maintenance command. Signature recovery handles public data only. No compatible fix exists: the fix starts at crypto-bigint 0.7.6 (via k256 0.14), but Reth pins discv5 to git rev 7663c00 with enr 0.13 (still in v2.8.1, whose lockfile keeps 0.5.5), and alloy-primitives 1.7.3, alloy-consensus/-signer 2.5.0 and revm-precompile 43.0.3 still require k256 0.13. Reassess on any Reth, alloy, revm, discv5, enr or k256 version change."
     }
   ],
   "required_compatibility": {

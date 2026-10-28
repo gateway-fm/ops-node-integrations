@@ -4,16 +4,14 @@ mod call_hash;
 mod config;
 mod delivery;
 mod direct;
+mod discovery;
 mod execution;
 mod fingerprint;
 mod hops;
 mod payload;
 mod profile;
 mod verification;
-use reth_ethereum::{
-    cli::interface::Cli,
-    node::{EthereumNode, node::EthereumAddOns},
-};
+use reth_ethereum::node::{EthereumNode, node::EthereumAddOns};
 use std::{sync::Arc, time::Instant};
 
 fn main() -> eyre::Result<()> {
@@ -26,8 +24,8 @@ fn main() -> eyre::Result<()> {
         return Ok(());
     }
     // Upstream calls this launcher only for `node`, the one command that builds blocks, so
-    // maintenance commands (`--version`, `init`, `db`, `import`, ...) do not need the flag.
-    Cli::parse_args().run(async move |builder, _| {
+    // maintenance commands (`--version`, `init`, `db`, `import`, ...) do not need OPS_APPROVALS.
+    discovery::parse_args()?.run(async move |builder, _| {
         let enabled = config::approvals_enabled(std::env::var("OPS_APPROVALS"))
             .map_err(|e| eyre::eyre!(e))?;
         let store = if enabled {
