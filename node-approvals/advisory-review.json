@@ -69,6 +69,13 @@
       "reason": "Not reachable through the approval extension on pinned Besu 26.8.1: PrepareApprovalRpc reads Object[] parameters without numeric coercion, requires one raw-transaction String, and uses hex/RLP decoding. It never converts arbitrary strings to floating-point numbers, invokes JsonNode.asDouble(), or calls NumberInput.looksLikeValidNumber(); its response uses known strings, booleans and collection values. Approval delivery is bounded protobuf and fingerprint JSON uses CanonicalJson. The plugin bundles no Jackson classes. This exact-version review does not clear other Besu methods or host uses; reassess on parameter/coercion, serialization or host-version changes; see SECURITY.md."
     },
     {
+      "ecosystem": "Maven",
+      "name": "com.google.guava:guava",
+      "version": "33.5.0-jre",
+      "id": "GHSA-xxph-c9ww-hj94",
+      "reason": "Not reachable through the approval extension on pinned Besu 26.8.1: the advisory needs Java native deserialization (ObjectInputStream.readObject) of an attacker-supplied stream into CompactHashMap, CompactHashSet or MapMakerInternalMap. The plugin uses no Java serialization and no Guava classes: approval delivery is bounded protobuf, PrepareApprovalRpc decodes hex/RLP and fingerprint JSON uses CanonicalJson. The fix is 33.7.2; 33.5.0-jre is supplied by the pinned Besu runtime, the plugin bundles no Guava classes and cannot update the parent-first host library. This exact-version review covers the approval plugin only, not other Besu uses of Java deserialization. Reassess on serialization, bundled-dependency or host-version changes; see SECURITY.md."
+    },
+    {
       "ecosystem": "crates.io",
       "name": "zstd",
       "version": "0.13.3",
