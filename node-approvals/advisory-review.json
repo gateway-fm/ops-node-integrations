@@ -1,5 +1,5 @@
 {
-  "reviewed_on": "2026-10-08",
+  "reviewed_on": "2026-10-28",
   "recheck_by": "2026-12-29",
   "required_versions": {
     "alloy-provider": "2.3.0"
@@ -67,6 +67,104 @@
       "version": "2.21.5",
       "id": "GHSA-p6pp-m3f8-5c89",
       "reason": "Not reachable through the approval extension on pinned Besu 26.8.1: PrepareApprovalRpc reads Object[] parameters without numeric coercion, requires one raw-transaction String, and uses hex/RLP decoding. It never converts arbitrary strings to floating-point numbers, invokes JsonNode.asDouble(), or calls NumberInput.looksLikeValidNumber(); its response uses known strings, booleans and collection values. Approval delivery is bounded protobuf and fingerprint JSON uses CanonicalJson. The plugin bundles no Jackson classes. This exact-version review does not clear other Besu methods or host uses; reassess on parameter/coercion, serialization or host-version changes; see SECURITY.md."
+    },
+    {
+      "ecosystem": "crates.io",
+      "name": "zstd",
+      "version": "0.13.3",
+      "id": "RUSTSEC-2026-0391",
+      "reason": "Not reachable in ops-reth-approvals (Reth 2.5.2): zstd's raw with_context is called only by its own read::Decoder::with_context and write::Encoder::with_context, which no linked crate calls; every stream owns its context, and tower-http builds a new ZstdEncoder for each RPC response. Reassess on Reth, tower-http, async-compression or direct zstd usage changes."
+    },
+    {
+      "ecosystem": "crates.io",
+      "name": "zstd-safe",
+      "version": "7.2.4",
+      "id": "RUSTSEC-2026-0395",
+      "reason": "Not reachable in ops-reth-approvals (Reth 2.5.2): the experimental feature compiles StableInBuffer, but no linked crate sets it; the only compression parameters set are CompressionLevel and tower-http's WindowLog, which it sets only at levels of 17 and above while Reth uses the default level. Reassess on Reth, tower-http, async-compression or direct zstd usage changes."
+    },
+    {
+      "ecosystem": "crates.io",
+      "name": "zstd-safe",
+      "version": "7.2.4",
+      "id": "RUSTSEC-2026-0396",
+      "reason": "Not compiled into ops-reth-approvals (Reth 2.5.2): zstd-safe's seekable module is gated on the seekable feature, which no dependency enables (zstd-safe features on x86_64 and aarch64 Linux: arrays, experimental, legacy, std, zdict_builder). Reassess if `cargo tree -e features -i zstd-safe` shows seekable, or on Reth upgrade."
+    },
+    {
+      "ecosystem": "crates.io",
+      "name": "zstd-safe",
+      "version": "7.2.4",
+      "id": "RUSTSEC-2026-0397",
+      "reason": "Not reachable in ops-reth-approvals (Reth 2.5.2): the only OutBuffer::around_pos caller is compression-codecs 0.4.38 zstd/mod.rs (tower-http RPC response compression), over a compression-core WriteBuffer rather than a Vec; async-compression builds a fresh WriteBuffer on every poll and the position only advances through set_written_and_initialized_len, so it never passes initialised memory. Reassess on compression-codecs, compression-core, async-compression, tower-http or Reth upgrade."
+    },
+    {
+      "ecosystem": "crates.io",
+      "name": "zstd-safe",
+      "version": "7.2.4",
+      "id": "RUSTSEC-2026-0398",
+      "reason": "Not compiled into ops-reth-approvals (Reth 2.5.2): zstd-safe's seekable module is gated on the seekable feature, which no dependency enables (zstd-safe features on x86_64 and aarch64 Linux: arrays, experimental, legacy, std, zdict_builder). Reassess if `cargo tree -e features -i zstd-safe` shows seekable, or on Reth upgrade."
+    },
+    {
+      "ecosystem": "crates.io",
+      "name": "zstd-safe",
+      "version": "7.2.4",
+      "id": "RUSTSEC-2026-0399",
+      "reason": "Not reachable in ops-reth-approvals (Reth 2.5.2): the experimental feature compiles CCtx::init_using_cdict and DCtx::init_using_ddict, but no linked crate calls them; dictionaries are attached through ref_cdict/ref_ddict in zstd's bulk Compressor/Decompressor (reth-zstd-compressors, nippy-jar). Reassess on Reth or direct zstd usage changes."
+    },
+    {
+      "ecosystem": "crates.io",
+      "name": "zstd-safe",
+      "version": "7.2.4",
+      "id": "RUSTSEC-2026-0400",
+      "reason": "Not reachable in ops-reth-approvals (Reth 2.5.2): one-shot DCtx::decompress and CCtx::compress2 run only on zstd bulk Compressor/Decompressor contexts (reth-zstd-compressors, nippy-jar) that never stream; reth-codecs uses the public TRANSACTION_/RECEIPT_COMPRESSOR thread-locals only through compress()/decompress(), no linked crate calls Compressor::context_mut, and every streaming encoder or decoder owns its own context. Reassess on Reth or direct zstd usage changes."
+    },
+    {
+      "ecosystem": "crates.io",
+      "name": "zstd-safe",
+      "version": "7.2.4",
+      "id": "RUSTSEC-2026-0401",
+      "reason": "Not reachable in ops-reth-approvals (Reth 2.5.2): train_from_buffer is reached only through zstd::dict::from_continuous in nippy-jar Zstd::prepare_compression, which is #[cfg(test)]; from_samples has no callers, and runtime compression uses the prebuilt reth-zstd-compressors dictionaries. Reassess on Reth or direct zstd usage changes."
+    },
+    {
+      "ecosystem": "crates.io",
+      "name": "zstd-safe",
+      "version": "7.2.4",
+      "id": "RUSTSEC-2026-0402",
+      "reason": "Not reachable in ops-reth-approvals (Reth 2.5.2): no linked crate calls CCtx::try_clone, and no multithreaded context can exist: the bundled zstd 1.5.7 in the Docker image and CI-built binary is compiled without zstdmt and without the pkg-config feature or ZSTD_SYS_USE_PKG_CONFIG, so it lacks ZSTD_MULTITHREAD and rejects NbWorkers != 0. Reassess if zstdmt, the zstd-sys pkg-config feature or ZSTD_SYS_USE_PKG_CONFIG is enabled, or on Reth upgrade."
+    },
+    {
+      "ecosystem": "crates.io",
+      "name": "zstd-safe",
+      "version": "7.2.4",
+      "id": "RUSTSEC-2026-0403",
+      "reason": "Not reachable in ops-reth-approvals (Reth 2.5.2): the live decompress_stream callers are zstd::stream::read::Decoder (Reth's download command extracting an operator-chosen snapshot, and nippy-jar static files), which the advisory lists as unaffected; there is no write::Decoder caller and no decompression layer, since reqwest's decompression features are off and reth-downloaders uses only gzip. Reassess if reqwest or Reth enables zstd decompression, or on Reth upgrade."
+    },
+    {
+      "ecosystem": "crates.io",
+      "name": "zstd-safe",
+      "version": "7.2.4",
+      "id": "RUSTSEC-2026-0404",
+      "reason": "Not reachable in ops-reth-approvals (Reth 2.5.2): the experimental feature compiles DCtx::try_clone, but no linked crate calls it; decompression contexts are created fresh per bulk Decompressor or stream decoder. Reassess on Reth or direct zstd usage changes."
+    },
+    {
+      "ecosystem": "crates.io",
+      "name": "zstd-safe",
+      "version": "7.2.4",
+      "id": "RUSTSEC-2026-0405",
+      "reason": "Not compiled into ops-reth-approvals (Reth 2.5.2): zstd-safe's seekable module is gated on the seekable feature, which no dependency enables (zstd-safe features on x86_64 and aarch64 Linux: arrays, experimental, legacy, std, zdict_builder). Reassess if `cargo tree -e features -i zstd-safe` shows seekable, or on Reth upgrade."
+    },
+    {
+      "ecosystem": "crates.io",
+      "name": "zstd-safe",
+      "version": "7.2.4",
+      "id": "RUSTSEC-2026-0406",
+      "reason": "Not reachable in ops-reth-approvals (Reth 2.5.2): set_parameter and ref_cdict are called, but the advisory needs an unfinished multithreaded frame, and the bundled zstd 1.5.7 in the Docker image and CI-built binary is compiled without zstdmt and without the pkg-config feature or ZSTD_SYS_USE_PKG_CONFIG, so it lacks ZSTD_MULTITHREAD and rejects NbWorkers != 0. Reassess if zstdmt, the zstd-sys pkg-config feature or ZSTD_SYS_USE_PKG_CONFIG is enabled, or on Reth upgrade."
+    },
+    {
+      "ecosystem": "crates.io",
+      "name": "block-buffer",
+      "version": "0.10.4",
+      "id": "GHSA-qwgh-2vcv-g2f7",
+      "reason": "Not affected in 0.10.4: OSV's range is a blanket introduced 0 to fixed 0.12.1 without per-version analysis. The advisory's mechanism is the 0.11/0.12 inline cursor stored inside the block bytes and overwritten before a panicking compress/gen_block callback. 0.10.4 has no inline cursor storage and no ReadBuffer: its cursor is a separate pos field, written only after callbacks return, so a caught panic leaves a valid position. No 0.10.x fix exists (digest 0.10.7 requires 0.10); the 0.12 copy is updated to the fixed 0.12.1. Reassess on any block-buffer or digest version change."
     }
   ],
   "required_compatibility": {
