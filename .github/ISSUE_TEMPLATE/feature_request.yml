@@ -1,0 +1,22 @@
+name: Feature request
+description: Propose a capability or improvement.
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This issue is public. Use generic examples and omit internal plans, customer data
+        and private security findings. Report vulnerabilities to security@gateway.fm.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+      description: Who needs this capability, and what cannot be done today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior and alternatives
+      description: Describe the expected behavior and any alternatives considered.
+    validations:
+      required: true

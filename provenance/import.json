@@ -1,0 +1,13 @@
+{
+  "repository": "https://github.com/gateway-fm/open-privacy-suite.git",
+  "source_commit": "132af5329dbe6678202da5ccc514d2bfc5793302",
+  "paths": [
+    "node-approvals",
+    "proto/ops/approvals/v1",
+    "internal/nodeapproval/testdata",
+    "docs/implementation/approvals-wire-contract.md",
+    "LICENSE"
+  ],
+  "history": "Filtered to the listed maintained paths. Original author identities and messages are preserved; rewritten commit IDs are mapped in commit-map.txt. No OPS upstream history was rewritten.",
+  "license": "Apache-2.0"
+}

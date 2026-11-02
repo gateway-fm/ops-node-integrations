@@ -1,0 +1,191 @@
+{
+  "reviewed_on": "2026-10-28",
+  "recheck_by": "2026-12-29",
+  "required_versions": {
+    "alloy-provider": "2.3.0"
+  },
+  "exceptions": [
+    {
+      "ecosystem": "Maven",
+      "name": "org.bouncycastle:bcprov-jdk18on",
+      "version": "1.84",
+      "id": "GHSA-9pwp-9qqc-pr26",
+      "reason": "Not reachable from ApprovalVerifier: it calls math.ec.rfc8032.Ed25519.verify with raw fixed-length keys/signatures and bounded message bytes, with no certificate or PKIX name-constraint parsing. Upstream fix 2c28b25 changes PKIXNameConstraintValidator. This exact-version review covers the approval plugin only, not other Besu certificate/TLS uses; 1.84 is supplied by the pinned Besu runtime, not bundled by this plugin. Reassess on crypto API, trust-key format or host-version changes; see SECURITY.md."
+    },
+    {
+      "ecosystem": "Maven",
+      "name": "org.bouncycastle:bcprov-jdk18on",
+      "version": "1.84",
+      "id": "GHSA-qp49-qgx5-5m26",
+      "reason": "Not reachable from ApprovalVerifier: raw Ed25519 verification uses byte decoding, curve arithmetic and SHA-512, with no ASN.1 parser. Upstream fix 77454da changes the lazy ASN.1 sequence parsing depth guard. This exact-version review covers the approval plugin only, not other Besu ASN.1 uses; 1.84 is supplied by the pinned Besu runtime, not bundled by this plugin. Reassess on crypto API, trust-key format or host-version changes; see SECURITY.md."
+    },
+    {
+      "ecosystem": "crates.io",
+      "name": "bincode",
+      "version": "1.3.3",
+      "id": "RUSTSEC-2025-0141",
+      "reason": "Maintenance notice, not a reported vulnerability. Retained by pinned upstream dependencies; replacing serialization needs upstream compatibility review."
+    },
+    {
+      "ecosystem": "crates.io",
+      "name": "derivative",
+      "version": "2.2.0",
+      "id": "RUSTSEC-2024-0388",
+      "reason": "Unmaintained compile-time derive macro; no runtime vulnerability in this advisory. Track upstream replacement."
+    },
+    {
+      "ecosystem": "crates.io",
+      "name": "paste",
+      "version": "1.0.15",
+      "id": "RUSTSEC-2024-0436",
+      "reason": "Unmaintained compile-time macro; no runtime vulnerability in this advisory. Track upstream replacement."
+    },
+    {
+      "ecosystem": "crates.io",
+      "name": "proc-macro-error2",
+      "version": "2.0.1",
+      "id": "RUSTSEC-2026-0173",
+      "reason": "Unmaintained compile-time diagnostic macro; no runtime vulnerability in this advisory. Track upstream replacement."
+    },
+    {
+      "ecosystem": "crates.io",
+      "name": "lru",
+      "version": "0.16.4",
+      "id": "RUSTSEC-2026-0253",
+      "reason": "Not reachable in the pinned alloy-provider 2.3.0 usage: blocks.rs keys are BlockNumber/u64 and layers/cache.rs keys are B256. Both are primitive/Copy keys with no panicking Drop, which the advisory requires. The other lru dependency is updated to 0.18.2. Reassess on any provider/key-type change."
+    },
+    {
+      "ecosystem": "Maven",
+      "name": "com.fasterxml.jackson.core:jackson-core",
+      "version": "2.21.5",
+      "id": "GHSA-7hhh-6rmp-j9qf",
+      "reason": "Not reachable through the approval extension on pinned Besu 26.8.1: its IPC parser uses JsonFactory.createParser(InputStream), and HTTP uses Vert.x Buffer/String decoding, not createParser(DataInput). PrepareApprovalRpc accepts one raw-transaction String from getParams() and decodes hex/RLP; CanonicalJson is a handwritten output encoder. The plugin bundles no Jackson classes and cannot update the parent-first host library. This exact-version review covers approval ingress and RPC only, not other Besu Jackson/DataInput uses. Reassess on RPC/parser, host-version or serialization changes; see SECURITY.md."
+    },
+    {
+      "ecosystem": "Maven",
+      "name": "com.fasterxml.jackson.core:jackson-core",
+      "version": "2.21.5",
+      "id": "GHSA-p6pp-m3f8-5c89",
+      "reason": "Not reachable through the approval extension on pinned Besu 26.8.1: PrepareApprovalRpc reads Object[] parameters without numeric coercion, requires one raw-transaction String, and uses hex/RLP decoding. It never converts arbitrary strings to floating-point numbers, invokes JsonNode.asDouble(), or calls NumberInput.looksLikeValidNumber(); its response uses known strings, booleans and collection values. Approval delivery is bounded protobuf and fingerprint JSON uses CanonicalJson. The plugin bundles no Jackson classes. This exact-version review does not clear other Besu methods or host uses; reassess on parameter/coercion, serialization or host-version changes; see SECURITY.md."
+    },
+    {
+      "ecosystem": "Maven",
+      "name": "com.google.guava:guava",
+      "version": "33.5.0-jre",
+      "id": "GHSA-xxph-c9ww-hj94",
+      "reason": "Not reachable through the approval extension on pinned Besu 26.8.1: the advisory needs Java native deserialization (ObjectInputStream.readObject) of an attacker-supplied stream into CompactHashMap, CompactHashSet or MapMakerInternalMap. The plugin uses no Java serialization and no Guava classes: approval delivery is bounded protobuf, PrepareApprovalRpc decodes hex/RLP and fingerprint JSON uses CanonicalJson. The fix is 33.7.2; 33.5.0-jre is supplied by the pinned Besu runtime, the plugin bundles no Guava classes and cannot update the parent-first host library. This exact-version review covers the approval plugin only, not other Besu uses of Java deserialization. Reassess on serialization, bundled-dependency or host-version changes; see SECURITY.md."
+    },
+    {
+      "ecosystem": "crates.io",
+      "name": "zstd",
+      "version": "0.13.3",
+      "id": "RUSTSEC-2026-0391",
+      "reason": "Not reachable in ops-reth-approvals (Reth 2.5.2): zstd's raw with_context is called only by its own read::Decoder::with_context and write::Encoder::with_context, which no linked crate calls; every stream owns its context, and tower-http builds a new ZstdEncoder for each RPC response. Reassess on Reth, tower-http, async-compression or direct zstd usage changes."
+    },
+    {
+      "ecosystem": "crates.io",
+      "name": "zstd-safe",
+      "version": "7.2.4",
+      "id": "RUSTSEC-2026-0395",
+      "reason": "Not reachable in ops-reth-approvals (Reth 2.5.2): the experimental feature compiles StableInBuffer, but no linked crate sets it; the only compression parameters set are CompressionLevel and tower-http's WindowLog, which it sets only at levels of 17 and above while Reth uses the default level. Reassess on Reth, tower-http, async-compression or direct zstd usage changes."
+    },
+    {
+      "ecosystem": "crates.io",
+      "name": "zstd-safe",
+      "version": "7.2.4",
+      "id": "RUSTSEC-2026-0396",
+      "reason": "Not compiled into ops-reth-approvals (Reth 2.5.2): zstd-safe's seekable module is gated on the seekable feature, which no dependency enables (zstd-safe features on x86_64 and aarch64 Linux: arrays, experimental, legacy, std, zdict_builder). Reassess if `cargo tree -e features -i zstd-safe` shows seekable, or on Reth upgrade."
+    },
+    {
+      "ecosystem": "crates.io",
+      "name": "zstd-safe",
+      "version": "7.2.4",
+      "id": "RUSTSEC-2026-0397",
+      "reason": "Not reachable in ops-reth-approvals (Reth 2.5.2): the only OutBuffer::around_pos caller is compression-codecs 0.4.38 zstd/mod.rs (tower-http RPC response compression), over a compression-core WriteBuffer rather than a Vec; async-compression builds a fresh WriteBuffer on every poll and the position only advances through set_written_and_initialized_len, so it never passes initialised memory. Reassess on compression-codecs, compression-core, async-compression, tower-http or Reth upgrade."
+    },
+    {
+      "ecosystem": "crates.io",
+      "name": "zstd-safe",
+      "version": "7.2.4",
+      "id": "RUSTSEC-2026-0398",
+      "reason": "Not compiled into ops-reth-approvals (Reth 2.5.2): zstd-safe's seekable module is gated on the seekable feature, which no dependency enables (zstd-safe features on x86_64 and aarch64 Linux: arrays, experimental, legacy, std, zdict_builder). Reassess if `cargo tree -e features -i zstd-safe` shows seekable, or on Reth upgrade."
+    },
+    {
+      "ecosystem": "crates.io",
+      "name": "zstd-safe",
+      "version": "7.2.4",
+      "id": "RUSTSEC-2026-0399",
+      "reason": "Not reachable in ops-reth-approvals (Reth 2.5.2): the experimental feature compiles CCtx::init_using_cdict and DCtx::init_using_ddict, but no linked crate calls them; dictionaries are attached through ref_cdict/ref_ddict in zstd's bulk Compressor/Decompressor (reth-zstd-compressors, nippy-jar). Reassess on Reth or direct zstd usage changes."
+    },
+    {
+      "ecosystem": "crates.io",
+      "name": "zstd-safe",
+      "version": "7.2.4",
+      "id": "RUSTSEC-2026-0400",
+      "reason": "Not reachable in ops-reth-approvals (Reth 2.5.2): one-shot DCtx::decompress and CCtx::compress2 run only on zstd bulk Compressor/Decompressor contexts (reth-zstd-compressors, nippy-jar) that never stream; reth-codecs uses the public TRANSACTION_/RECEIPT_COMPRESSOR thread-locals only through compress()/decompress(), no linked crate calls Compressor::context_mut, and every streaming encoder or decoder owns its own context. Reassess on Reth or direct zstd usage changes."
+    },
+    {
+      "ecosystem": "crates.io",
+      "name": "zstd-safe",
+      "version": "7.2.4",
+      "id": "RUSTSEC-2026-0401",
+      "reason": "Not reachable in ops-reth-approvals (Reth 2.5.2): train_from_buffer is reached only through zstd::dict::from_continuous in nippy-jar Zstd::prepare_compression, which is #[cfg(test)]; from_samples has no callers, and runtime compression uses the prebuilt reth-zstd-compressors dictionaries. Reassess on Reth or direct zstd usage changes."
+    },
+    {
+      "ecosystem": "crates.io",
+      "name": "zstd-safe",
+      "version": "7.2.4",
+      "id": "RUSTSEC-2026-0402",
+      "reason": "Not reachable in ops-reth-approvals (Reth 2.5.2): no linked crate calls CCtx::try_clone, and no multithreaded context can exist: the bundled zstd 1.5.7 in the Docker image and CI-built binary is compiled without zstdmt and without the pkg-config feature or ZSTD_SYS_USE_PKG_CONFIG, so it lacks ZSTD_MULTITHREAD and rejects NbWorkers != 0. Reassess if zstdmt, the zstd-sys pkg-config feature or ZSTD_SYS_USE_PKG_CONFIG is enabled, or on Reth upgrade."
+    },
+    {
+      "ecosystem": "crates.io",
+      "name": "zstd-safe",
+      "version": "7.2.4",
+      "id": "RUSTSEC-2026-0403",
+      "reason": "Not reachable in ops-reth-approvals (Reth 2.5.2): the live decompress_stream callers are zstd::stream::read::Decoder (Reth's download command extracting an operator-chosen snapshot, and nippy-jar static files), which the advisory lists as unaffected; there is no write::Decoder caller and no decompression layer, since reqwest's decompression features are off and reth-downloaders uses only gzip. Reassess if reqwest or Reth enables zstd decompression, or on Reth upgrade."
+    },
+    {
+      "ecosystem": "crates.io",
+      "name": "zstd-safe",
+      "version": "7.2.4",
+      "id": "RUSTSEC-2026-0404",
+      "reason": "Not reachable in ops-reth-approvals (Reth 2.5.2): the experimental feature compiles DCtx::try_clone, but no linked crate calls it; decompression contexts are created fresh per bulk Decompressor or stream decoder. Reassess on Reth or direct zstd usage changes."
+    },
+    {
+      "ecosystem": "crates.io",
+      "name": "zstd-safe",
+      "version": "7.2.4",
+      "id": "RUSTSEC-2026-0405",
+      "reason": "Not compiled into ops-reth-approvals (Reth 2.5.2): zstd-safe's seekable module is gated on the seekable feature, which no dependency enables (zstd-safe features on x86_64 and aarch64 Linux: arrays, experimental, legacy, std, zdict_builder). Reassess if `cargo tree -e features -i zstd-safe` shows seekable, or on Reth upgrade."
+    },
+    {
+      "ecosystem": "crates.io",
+      "name": "zstd-safe",
+      "version": "7.2.4",
+      "id": "RUSTSEC-2026-0406",
+      "reason": "Not reachable in ops-reth-approvals (Reth 2.5.2): set_parameter and ref_cdict are called, but the advisory needs an unfinished multithreaded frame, and the bundled zstd 1.5.7 in the Docker image and CI-built binary is compiled without zstdmt and without the pkg-config feature or ZSTD_SYS_USE_PKG_CONFIG, so it lacks ZSTD_MULTITHREAD and rejects NbWorkers != 0. Reassess if zstdmt, the zstd-sys pkg-config feature or ZSTD_SYS_USE_PKG_CONFIG is enabled, or on Reth upgrade."
+    },
+    {
+      "ecosystem": "crates.io",
+      "name": "block-buffer",
+      "version": "0.10.4",
+      "id": "GHSA-qwgh-2vcv-g2f7",
+      "reason": "Not affected in 0.10.4: OSV's range is a blanket introduced 0 to fixed 0.12.1 without per-version analysis. The advisory's mechanism is the 0.11/0.12 inline cursor stored inside the block bytes and overwritten before a panicking compress/gen_block callback. 0.10.4 has no inline cursor storage and no ReadBuffer: its cursor is a separate pos field, written only after callbacks return, so a caught panic leaves a valid position. No 0.10.x fix exists (digest 0.10.7 requires 0.10); the 0.12 copy is updated to the fixed 0.12.1. Reassess on any block-buffer or digest version change."
+    },
+    {
+      "ecosystem": "crates.io",
+      "name": "crypto-bigint",
+      "version": "0.5.5",
+      "id": "RUSTSEC-2026-0387",
+      "reason": "Not reachable in ops-reth-approvals node (Reth 2.5.2): secret values reach crypto-bigint 0.5.5 only through k256 0.13 arithmetic on private keys. In node that is discv5 using the p2p key (handshake ECDH, id-nonce signing, ENR re-signing). The binary sets --disable-discv5-discovery by default before parsing the command line (src/discovery.rs; main parses through it, and its test checks the parsed node arguments) and the flag takes no value, so the command line cannot re-enable discv5. The same defaults apply to every networking command (stage run, p2p header/body); discv4 and RLPx use libsecp256k1. Other k256 private-key users are outside producer operation: DevSigner (--dev only) and the p2p bootnode --v5 maintenance command. Signature recovery handles public data only. No compatible fix exists: the fix starts at crypto-bigint 0.7.6 (via k256 0.14), but Reth pins discv5 to git rev 7663c00 with enr 0.13 (still in v2.8.1, whose lockfile keeps 0.5.5), and alloy-primitives 1.7.3, alloy-consensus/-signer 2.5.0 and revm-precompile 43.0.3 still require k256 0.13. Reassess on any Reth, alloy, revm, discv5, enr or k256 version change."
+    }
+  ],
+  "required_compatibility": {
+    "besu": {
+      "version": "26.8.1",
+      "maven_version": "26.8.1-d97cbd6",
+      "archive_sha256": "0e0ed9cc0d8fa9091081b6c5d4646f15bbf7e33a6eb1e9f7bfb2ef831fe9aaf4"
+    }
+  }
+}

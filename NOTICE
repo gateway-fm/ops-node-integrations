@@ -1,0 +1,11 @@
+OPS node integrations
+Copyright 2026 Gateway.fm and contributors.
+Licensed under the Apache License, Version 2.0; see LICENSE.
+
+Imported from gateway-fm/open-privacy-suite. Original authorship is retained in the
+filtered Git history; provenance/import.json records the exact source revision.
+Besu, Reth and third-party dependencies retain their own licenses and notices.
+See THIRD_PARTY_NOTICES.md for source attribution and dependency license references.
+
+The Apache License does not grant permission to use project or third-party
+trademarks, except as required for reasonable attribution under that license.
